@@ -1,0 +1,13 @@
+/node_modules
+/.next
+/out
+next-env.d.ts
+*.tsbuildinfo
+
+# Runtime data (crawled tenders + user store) — not committed
+/data/tenders.json
+/data/users.json
+
+.env
+.env.local
+.DS_Store
