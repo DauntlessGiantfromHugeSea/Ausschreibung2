@@ -7,12 +7,14 @@ import { formatCurrency, formatDate, deadlineLabel } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 const POPULAR = [
-  "Anhängerkupplung",
-  "Notebooks",
-  "Schulneubau",
-  "Reinigung",
-  "Photovoltaik",
-  "KI-Plattform",
+  "Flüssigboden",
+  "ZFSV",
+  "Erdkabel",
+  "Kabelgraben",
+  "Tiefbau",
+  "Spundwand",
+  "Verfüllung",
+  "Fernwärme",
 ];
 
 export default function HomePage() {
@@ -26,12 +28,13 @@ export default function HomePage() {
       <section className="bg-gradient-to-b from-brand-50 to-slate-50">
         <div className="mx-auto max-w-4xl px-4 py-20 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
-            Öffentliche Ausschreibungen,{" "}
-            <span className="text-brand-600">verständlich gemacht.</span>
+            Die richtigen Ausschreibungen für{" "}
+            <span className="text-brand-600">Flüssigboden & Tiefbau.</span>
           </h1>
           <p className="mt-4 text-lg text-slate-600">
-            Durchsuche deutsche und europäische Vergaben, filtere nach Branche und
-            Region und lass dir jede Ausschreibung per KI in Klartext erklären.
+            fluessigboden.ai bündelt deutsche und europäische Vergaben für
+            Flüssigboden/ZFSV, thermische Kabelbettung, Erdkabel, Verfüllung und
+            Tiefbau – mit fachlicher Relevanzbewertung und KI-Klartext-Analyse.
           </p>
           <div className="mt-8">
             <SearchBar />

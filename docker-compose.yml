@@ -1,8 +1,8 @@
 services:
   app:
     build: .
-    image: auftrag-ai:latest
-    container_name: auftrag-ai
+    image: fluessigboden-ai:latest
+    container_name: fluessigboden-ai
     restart: unless-stopped
     ports:
       # Host-Port konfigurierbar: APP_PORT in .env setzen (Standard 3000).
@@ -36,7 +36,7 @@ services:
       DOEV_API_URL: ${DOEV_API_URL:-}
       BUND_RSS_URL: ${BUND_RSS_URL:-}
     volumes:
-      - auftrag-data:/data
+      - fluessigboden-data:/data
 
 volumes:
-  auftrag-data:
+  fluessigboden-data:

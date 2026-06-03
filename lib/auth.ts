@@ -5,7 +5,7 @@ import { WRITABLE_DATA_DIR as DATA_DIR } from "./paths";
 
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const SECRET = process.env.AUTH_SECRET || "dev-insecure-secret-change-me";
-export const SESSION_COOKIE = "auftrag_session";
+export const SESSION_COOKIE = "fluessigboden_session";
 
 export type Role = "admin" | "user";
 

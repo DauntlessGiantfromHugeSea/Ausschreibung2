@@ -27,7 +27,7 @@ export function SearchBar({
       <input
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="z. B. Anhängerkupplung, Schulneubau, Notebooks …"
+        placeholder="z. B. Flüssigboden, Erdkabel, Kabelgraben, Tiefbau …"
         className={`flex-1 rounded-xl border border-slate-300 bg-white px-4 ${pad} shadow-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200`}
         aria-label="Ausschreibungen durchsuchen"
       />

@@ -15,7 +15,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const t = getTenderById(id);
-  return { title: t ? `${t.title} – auftrag.ai` : "Ausschreibung – auftrag.ai" };
+  return { title: t ? `${t.title} – fluessigboden.ai` : "Ausschreibung – fluessigboden.ai" };
 }
 
 export default async function TenderPage({

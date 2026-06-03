@@ -4,9 +4,9 @@ import { Header } from "@/components/Header";
 import { getCurrentUser } from "@/lib/session";
 
 export const metadata: Metadata = {
-  title: "auftrag.ai – KI-Plattform für öffentliche Ausschreibungen",
+  title: "fluessigboden.ai – KI-Plattform für Tiefbau- & Verfüllungs-Ausschreibungen",
   description:
-    "Finde, filtere und verstehe deutsche und europäische Ausschreibungen. Volltextsuche, Facetten und KI-gestützte Klartext-Zusammenfassungen.",
+    "Findet, filtert und bewertet deutsche und europäische Ausschreibungen für Flüssigboden, thermische Kabelbettung, Erdkabel, Verfüllung und Tiefbau. Volltextsuche, Facetten und KI-gestützte Klartext-Analyse.",
 };
 
 export default async function RootLayout({
@@ -22,8 +22,8 @@ export default async function RootLayout({
         <main className="flex-1">{children}</main>
         <footer className="border-t border-slate-200 bg-white">
           <div className="mx-auto max-w-6xl px-4 py-8 text-sm text-slate-500 flex flex-wrap justify-between gap-4">
-            <span>© {new Date().getFullYear()} auftrag.ai · Nachbau zu Demozwecken</span>
-            <span>Daten: TED / service.bund.de · Seed-Datensatz im Offline-Modus</span>
+            <span>© {new Date().getFullYear()} fluessigboden.ai · F&B Engineering</span>
+            <span>Datenquellen: TED · service.bund.de · Bekanntmachungsservice · cosinex</span>
           </div>
         </footer>
       </body>

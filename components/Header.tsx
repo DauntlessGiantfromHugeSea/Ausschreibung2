@@ -14,7 +14,7 @@ export function Header({ user }: { user: PublicUser | null }) {
             className="h-8 w-auto"
           />
           <span>
-            auftrag<span className="text-brand-600">.ai</span>
+            fluessigboden<span className="text-brand-600">.ai</span>
           </span>
         </Link>
 

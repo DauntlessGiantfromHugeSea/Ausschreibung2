@@ -1,9 +1,10 @@
-# auftrag.ai – KI-Plattform für öffentliche Ausschreibungen (Nachbau)
+# fluessigboden.ai – KI-Plattform für Tiefbau- & Verfüllungs-Ausschreibungen
 
-Ein funktionaler Nachbau einer Procurement-Plattform für deutsche und
-europäische Ausschreibungen, inspiriert von [auftrag.ai](https://auftrag.ai).
-Volltextsuche, Filter/Facetten, KI-gestützte Klartext-Analyse und Nutzerkonten
-mit gespeicherten Suchen.
+Die Ausschreibungsplattform von **F&B Engineering**: findet, filtert und
+bewertet deutsche und europäische Ausschreibungen für Flüssigboden / ZFSV,
+thermisch stabilisierende Böden (pro thermolith), Erdkabel-/Kabelgrabenverfüllung,
+Tiefbau und Spundwand. Mit Volltextsuche, Filter/Facetten, KI-gestützter
+Klartext-Analyse, fachlicher Relevanzbewertung und Nutzerverwaltung.
 
 ## Stack
 
@@ -29,8 +30,9 @@ npm run dev        # http://localhost:3000
 | KI-Matching        | Klartext-Zusammenfassung + Eignungs-Score pro Profil                |
 | Login/Konto        | Registrierung, Login, gespeicherte Suchen                           |
 
-Beispiel: Suche nach **„Anhängerkupplung"** → Trefferliste → Detailseite mit
-KI-Analyse für ein Profil wie „KFZ-Werkstatt, Bayern".
+Beispiel: Suche nach **„Flüssigboden"** oder **„Erdkabel Verfüllung"** →
+Trefferliste → Detailseite mit KI-Analyse für ein Profil wie
+„Flüssigboden/ZFSV, thermische Kabelbettung".
 
 ## Datenquellen (Crawler)
 
@@ -75,7 +77,7 @@ eigenes Profil angegeben ist.
 npm run crawl                          # alle aktiven Quellen, 50 je Quelle
 npm run crawl -- --limit 100
 npm run crawl -- --source ted,doev     # nur bestimmte Quellen
-npm run crawl -- --query Anhängerkupplung
+npm run crawl -- --query Flüssigboden
 ```
 
 ### Crawl im Container (Produktion)
@@ -132,13 +134,13 @@ docker compose logs -f          # Logs verfolgen
 ### Variante B – pures Docker
 
 ```bash
-docker build -t auftrag-ai:latest .
-docker volume create auftrag-data
-docker run -d --name auftrag-ai --restart unless-stopped \
+docker build -t fluessigboden-ai:latest .
+docker volume create fluessigboden-data
+docker run -d --name fluessigboden-ai --restart unless-stopped \
   -p 5000:3000 \
   -e AUTH_SECRET="$(openssl rand -hex 32)" \
-  -v auftrag-data:/data \
-  auftrag-ai:latest
+  -v fluessigboden-data:/data \
+  fluessigboden-ai:latest
 ```
 
 ### Auf dem Server deployen
@@ -159,7 +161,7 @@ In Produktion einen Reverse-Proxy davorschalten (Beispiel Caddy, terminiert TLS
 automatisch). `Caddyfile`:
 
 ```
-ausschreibungen.example.com {
+fluessigboden.ai {
     reverse_proxy localhost:5000
 }
 ```

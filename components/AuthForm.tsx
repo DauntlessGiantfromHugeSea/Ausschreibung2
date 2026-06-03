@@ -40,7 +40,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       <p className="mt-1 text-sm text-slate-500">
         {isRegister
           ? "Speichere Suchen und erhalte passende Ausschreibungen."
-          : "Willkommen zurück bei auftrag.ai."}
+          : "Willkommen zurück bei fluessigboden.ai."}
       </p>
 
       <form onSubmit={submit} className="mt-6 space-y-4">

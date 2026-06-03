@@ -15,7 +15,7 @@ export interface FetchOptions {
 }
 
 const DEFAULT_UA =
-  "auftrag-ai-crawler/1.0 (+https://fb-eng.de; tender aggregation)";
+  "fluessigboden-ai-crawler/1.0 (+https://fb-eng.de; tender aggregation)";
 
 export async function fetchWithRetry(
   url: string,
