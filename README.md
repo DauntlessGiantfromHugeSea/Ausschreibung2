@@ -66,6 +66,7 @@ Schreibbare Daten (Konten + gecrawlte Ausschreibungen) liegen im Volume `/data`.
 ```bash
 # Secret erzeugen und in .env ablegen (von compose automatisch gelesen)
 echo "AUTH_SECRET=$(openssl rand -hex 32)" >> .env
+echo "APP_PORT=5000" >> .env        # Host-Port (Container bleibt intern auf 3000)
 # optional: echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
 
 docker compose up -d --build
@@ -78,7 +79,7 @@ docker compose logs -f          # Logs verfolgen
 docker build -t auftrag-ai:latest .
 docker volume create auftrag-data
 docker run -d --name auftrag-ai --restart unless-stopped \
-  -p 3000:3000 \
+  -p 5000:3000 \
   -e AUTH_SECRET="$(openssl rand -hex 32)" \
   -v auftrag-data:/data \
   auftrag-ai:latest
@@ -89,10 +90,12 @@ docker run -d --name auftrag-ai --restart unless-stopped \
 ```bash
 git clone <repo-url> && cd Ausschreibung2
 git checkout claude/epic-lovelace-wtQXA
+echo "AUTH_SECRET=$(openssl rand -hex 32)" >> .env
+echo "APP_PORT=5000" >> .env
 docker compose up -d --build
 ```
 
-Danach erreichbar unter **http://SERVER-IP:3000**.
+Danach erreichbar unter **http://SERVER-IP:5000**.
 
 ### Öffentlich erreichbar machen (Domain + HTTPS)
 
@@ -101,12 +104,12 @@ automatisch). `Caddyfile`:
 
 ```
 ausschreibungen.example.com {
-    reverse_proxy localhost:3000
+    reverse_proxy localhost:5000
 }
 ```
 
-Mit Nginx analog `proxy_pass http://localhost:3000;` plus Certbot für HTTPS.
-Port 3000 dann besser nicht mehr direkt nach außen öffnen.
+Mit Nginx analog `proxy_pass http://localhost:5000;` plus Certbot für HTTPS.
+Port 5000 dann besser nicht mehr direkt nach außen öffnen.
 
 ### Echte Daten im Container crawlen
 
