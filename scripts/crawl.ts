@@ -14,9 +14,8 @@
  * portal is reported but never aborts the run. If every source yields nothing,
  * existing data is kept and the app continues on seed data.
  */
-import fs from "node:fs";
-import path from "node:path";
 import { runCrawl } from "../lib/ingest/index.ts";
+import { mergeAndPersist } from "../lib/ingest/persist.ts";
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -27,10 +26,6 @@ async function main() {
   const limit = Number(arg("limit") ?? 50);
   const query = arg("query");
   const only = arg("source")?.split(",").map((s) => s.trim()).filter(Boolean);
-
-  const dir = process.env.AUFTRAG_DATA_DIR || path.join(process.cwd(), "data");
-  fs.mkdirSync(dir, { recursive: true });
-  const out = path.join(dir, "tenders.json");
 
   console.log(`Crawling tender platforms (limit=${limit}${only ? `, only=${only.join(",")}` : ""}) …`);
   const { tenders, report } = await runCrawl({ limit, query, only });
@@ -44,8 +39,8 @@ async function main() {
     console.warn("No notices fetched from any source — keeping existing data.");
     return;
   }
-  fs.writeFileSync(out, JSON.stringify(tenders, null, 2), "utf-8");
-  console.log(`\nWrote ${tenders.length} de-duplicated tenders to ${out}`);
+  const { total, added } = mergeAndPersist(tenders);
+  console.log(`\nFetched ${tenders.length}, added ${added} new → ${total} tenders total.`);
 }
 
 main().catch((err) => {

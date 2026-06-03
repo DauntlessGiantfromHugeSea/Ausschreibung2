@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { getSavedSearches } from "@/lib/auth";
 import { DeleteSearchButton } from "@/components/DeleteSearchButton";
+import { ChangePasswordForm } from "@/components/ChangePasswordForm";
 import { formatDate } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +50,13 @@ export default async function AccountPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-semibold">Passwort ändern</h2>
+        <div className="mt-3">
+          <ChangePasswordForm />
+        </div>
       </section>
     </div>
   );

@@ -71,6 +71,19 @@ eigenes Profil angegeben ist.
 > einspeisen. TED + service.bund.de + Bekanntmachungsservice decken den Großteil
 > der oberschwelligen deutschen Vergaben ohnehin HTTP-basiert ab.
 
+Crawl-Läufe **sammeln an** (Merge + Dedup nach URL/Referenz) statt zu
+überschreiben – der Bestand wächst über die Zeit. Sobald echte Daten vorliegen,
+ersetzen sie den Demo-Seed.
+
+### Bestehende Daten aus der alten Plattform übernehmen
+
+Die ~8.000 bereits gecrawlten Ausschreibungen aus `ausschreibungsplattform-fbe`
+lassen sich direkt importieren (Admin → **Daten-Import**, `/admin/import`):
+
+1. In der alten Plattform `/export/csv` aufrufen → `ausschreibungen.csv`.
+2. Datei unter `/admin/import` hochladen (oder per `curl` an
+   `POST /api/admin/import`). Mapping CSV/JSON → Tender, Dedup nach URL.
+
 ### Crawl per CLI (lokal/Dev)
 
 ```bash

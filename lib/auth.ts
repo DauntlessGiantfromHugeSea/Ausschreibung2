@@ -173,6 +173,19 @@ export function authenticate(email: string, password: string): PublicUser | null
   return toPublic(user);
 }
 
+/** Self-service password change: verifies the current password first. */
+export function changePassword(userId: string, currentPassword: string, newPassword: string): void {
+  if (newPassword.length < 8) throw new Error("Neues Passwort muss mindestens 8 Zeichen haben.");
+  const users = readUsers();
+  const user = users.find((u) => u.id === userId);
+  if (!user) throw new Error("Benutzer nicht gefunden.");
+  if (!verifyPassword(currentPassword, user.passwordHash)) {
+    throw new Error("Aktuelles Passwort ist falsch.");
+  }
+  user.passwordHash = hashPassword(newPassword);
+  writeUsers(users);
+}
+
 export function getUserById(id: string | null): PublicUser | null {
   if (!id) return null;
   const user = readUsers().find((u) => u.id === id);

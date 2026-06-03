@@ -1,9 +1,6 @@
-import fs from "node:fs";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { runCrawl } from "@/lib/ingest";
-import { resetCache } from "@/lib/store";
-import { WRITABLE_DATA_DIR } from "@/lib/paths";
+import { mergeAndPersist } from "@/lib/ingest/persist";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -34,16 +31,11 @@ export async function POST(req: Request) {
 
   const { tenders, report } = await runCrawl({ limit, query, only });
 
+  let merge = { total: 0, added: 0 };
   if (tenders.length > 0) {
-    fs.mkdirSync(WRITABLE_DATA_DIR, { recursive: true });
-    fs.writeFileSync(
-      path.join(WRITABLE_DATA_DIR, "tenders.json"),
-      JSON.stringify(tenders, null, 2),
-      "utf-8",
-    );
-    resetCache();
+    merge = mergeAndPersist(tenders);
     report.written = true;
   }
 
-  return NextResponse.json(report);
+  return NextResponse.json({ ...report, fetched: tenders.length, ...merge });
 }

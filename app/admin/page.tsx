@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/session";
 import { isAdmin, listUsers } from "@/lib/auth";
@@ -22,9 +23,17 @@ export default async function AdminPage() {
             {user.email}
           </p>
         </div>
-        <span className="rounded-full bg-brand-50 px-3 py-1 text-sm font-medium text-brand-700">
-          Administrator
-        </span>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/import"
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+          >
+            Daten-Import
+          </Link>
+          <span className="rounded-full bg-brand-50 px-3 py-1 text-sm font-medium text-brand-700">
+            Administrator
+          </span>
+        </div>
       </div>
 
       <div className="mt-8">
