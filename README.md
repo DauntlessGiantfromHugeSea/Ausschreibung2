@@ -41,19 +41,33 @@ und Retries (Backoff). Fällt eine Plattform aus oder ist langsam, wird das pro
 Quelle gemeldet und bricht den Lauf **nicht** ab; am Ende wird über alle
 Quellen dedupliziert.
 
-| Quelle | Adapter | Status |
-| ------ | ------- | ------ |
-| **TED** (EU, ted.europa.eu) | offizielle REST-API | aktiv, sofort einsatzbereit |
-| **Bekanntmachungsservice** (oeffentlichevergabe.de) | OCDS-API | aktiv (Endpoint via `DOEV_API_URL` anpassbar) |
-| **DTVP** (dtvp.de) | RSS/Atom-Feed | aktiv, sobald `DTVP_FEED_URL` gesetzt ist |
-| **Vergabemarktplatz** (cosinex) | RSS/Atom-Feed | aktiv, sobald `VMP_FEED_URL` gesetzt ist |
-| **eVergabe.de** | RSS/Atom-Feed | aktiv, sobald `EVERGABE_FEED_URL` gesetzt ist |
+Die Crawl-Logik (Endpoints, Query-Parameter, Feld-Mappings, Fachfilter) wurde
+aus der bestehenden Python-Plattform `ausschreibungsplattform-fbe` portiert.
 
-> Hinweis: TED und der Bekanntmachungsservice decken oberschwellige deutsche
-> Vergaben breit ab – auch viele, die über DTVP/cosinex/eVergabe veröffentlicht
-> werden. Die cosinex-Feeds aktivieren sich automatisch, sobald die jeweilige
-> Feed-URL als Umgebungsvariable hinterlegt ist; ohne URL deaktiviert sich die
-> Quelle sauber (kein Fehler).
+| Quelle | Methode | Status |
+| ------ | ------- | ------ |
+| **TED** (EU, ted.europa.eu) | REST-API v3 (`buyer-country="DEU"`, ACTIVE, Pagination) | HTTP-only, sofort aktiv |
+| **service.bund.de** | RSS-Feed (`jobsrss=true`, Bauleistungen) | HTTP-only, sofort aktiv |
+| **Bekanntmachungsservice** (oeffentlichevergabe.de) | OCDS-API | HTTP-only, aktiv (`DOEV_API_URL`) |
+| **cosinex** Vergabemarktplatz | HTML-Listing (`welcome.do`-Tabelle) | HTTP, aktiv via `COSINEX_BASE_URL`/`COSINEX_ENABLE=1` |
+| **DTVP** (dtvp.de) | **Browser nötig** (Bot-Schutz) bzw. RSS via `DTVP_FEED_URL` | siehe Hinweis |
+| **eVergabe.de** | **Browser nötig** (Bot-Schutz) bzw. RSS via `EVERGABE_FEED_URL` | siehe Hinweis |
+
+**Fachfilter:** Crawl-Treffer werden gegen die F&B-Themencluster
+(`lib/ingest/searchTerms.ts`: Flüssigboden/ZFSV, thermisch stabilisierende Böden /
+pro thermolith, Erdkabel/Kabelgraben, Verfüllung, Tiefbau, Spundwand …) gefiltert
+und gewichtet bewertet. Dieselbe Logik liefert den Eignungs-Score, wenn kein
+eigenes Profil angegeben ist.
+
+> **Wichtig — Bot-Schutz bei DTVP & eVergabe.de:** Diese Portale erkennen reine
+> HTTP-Clients und blocken sie. Die Python-Plattform löst das mit einem
+> separaten **Playwright-Enricher** (echter Chromium-Browser unter Xvfb,
+> `headless=false`). Reine HTTP-Adapter liefern dort **nichts**. Zwei Optionen:
+> (1) einen RSS-Feed der Portale hinterlegen (`DTVP_FEED_URL` / `EVERGABE_FEED_URL`),
+> oder (2) den Playwright-Enricher als eigenständigen Dienst betreiben (analog
+> zum `enricher/`-Verzeichnis der Python-Plattform) und dessen Ergebnisse
+> einspeisen. TED + service.bund.de + Bekanntmachungsservice decken den Großteil
+> der oberschwelligen deutschen Vergaben ohnehin HTTP-basiert ab.
 
 ### Crawl per CLI (lokal/Dev)
 
@@ -88,10 +102,15 @@ Seed-Datensatz aktiv.
 | `AUFTRAG_DATA_DIR`   | Schreibbares Datenverzeichnis (Nutzer + gecrawlte Daten); im Docker auf ein Volume gemountet |
 | `CRAWL_TOKEN`        | Schützt `POST /api/admin/crawl`; nötig fürs Crawling im Container |
 | `DTVP_FEED_URL`      | RSS/Atom-Feed-URL für DTVP (aktiviert die Quelle)           |
-| `VMP_FEED_URL`       | RSS/Atom-Feed-URL für den Vergabemarktplatz (cosinex)       |
 | `EVERGABE_FEED_URL`  | RSS/Atom-Feed-URL für eVergabe.de                           |
 | `TED_API_URL`        | Override für den TED-API-Endpoint (Default gesetzt)         |
+| `TED_MAX_PAGES`      | Anzahl TED-Seiten pro Lauf (Default 4)                      |
+| `TED_FILTER_FBE`     | `1` = TED-Treffer auf F&B-Themencluster filtern             |
 | `DOEV_API_URL`       | Override für den Bekanntmachungsservice-Endpoint (Default gesetzt) |
+| `BUND_RSS_URL`       | Override für den service.bund.de-RSS-Feed                   |
+| `COSINEX_ENABLE`     | `1` = cosinex-Scraper aktivieren (Default vergabeportal-bw) |
+| `COSINEX_BASE_URL`   | Basis-URL des cosinex-Portals (aktiviert die Quelle)        |
+| `COSINEX_LISTING_PATHS` | Komma-getrennte Listing-Pfade (überschreibt Defaults)    |
 
 ## Deployment per Docker
 

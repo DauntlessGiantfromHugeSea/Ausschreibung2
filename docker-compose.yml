@@ -22,13 +22,19 @@ services:
       # Token to protect the crawl endpoint (POST /api/admin/crawl). Set this to
       # enable scheduled crawling in the container.
       CRAWL_TOKEN: ${CRAWL_TOKEN:-}
-      # Optional cosinex-based portal feeds — set the RSS/Atom URL to activate.
+      # cosinex HTML scraper (defaults to vergabeportal-bw when enabled).
+      COSINEX_ENABLE: ${COSINEX_ENABLE:-}
+      COSINEX_BASE_URL: ${COSINEX_BASE_URL:-}
+      COSINEX_LISTING_PATHS: ${COSINEX_LISTING_PATHS:-}
+      # Browser-protected portals — provide an RSS feed to activate (see README).
       DTVP_FEED_URL: ${DTVP_FEED_URL:-}
-      VMP_FEED_URL: ${VMP_FEED_URL:-}
       EVERGABE_FEED_URL: ${EVERGABE_FEED_URL:-}
-      # Optional endpoint overrides (defaults point at the official APIs).
+      # Optional endpoint overrides / tuning (defaults point at the official APIs).
       TED_API_URL: ${TED_API_URL:-}
+      TED_MAX_PAGES: ${TED_MAX_PAGES:-}
+      TED_FILTER_FBE: ${TED_FILTER_FBE:-}
       DOEV_API_URL: ${DOEV_API_URL:-}
+      BUND_RSS_URL: ${BUND_RSS_URL:-}
     volumes:
       - auftrag-data:/data
 

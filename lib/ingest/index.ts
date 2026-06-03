@@ -1,19 +1,30 @@
 import type { Tender } from "../types";
 import type { CrawlOptions, CrawlReport, SourceReport, TenderSource } from "./source";
 import { tedSource } from "./sources/ted";
+import { bundSource } from "./sources/bund";
 import { doevSource } from "./sources/doev";
+import { cosinexSource } from "./sources/cosinex";
 import { makeRssSource } from "./sources/cosinexRss";
 
 /**
- * All registered procurement platforms. cosinex-based portals (DTVP,
- * Vergabemarktplatz, eVergabe.de) are wired via configurable RSS feeds and
- * activate automatically once their *_FEED_URL env var is set.
+ * All registered procurement platforms.
+ *
+ * HTTP-only (run out of the box on any server with outbound access):
+ *   - TED            — official EU Search API
+ *   - service.bund.de — RSS feed (jobsrss)
+ *   - Bekanntmachungsservice (oeffentlichevergabe.de) — OCDS API
+ *   - cosinex        — HTML listing scrape (enable via COSINEX_BASE_URL/COSINEX_ENABLE)
+ *
+ * Browser-required portals (evergabe.de, DTVP) use bot detection and need a
+ * headless-browser enricher; here they are optional RSS adapters that activate
+ * only when a *_FEED_URL is provided. See README for the Playwright path.
  */
 export const SOURCES: TenderSource[] = [
   tedSource,
+  bundSource,
   doevSource,
+  cosinexSource,
   makeRssSource({ id: "dtvp", label: "DTVP", feedEnv: "DTVP_FEED_URL" }),
-  makeRssSource({ id: "vmp", label: "Vergabemarktplatz", feedEnv: "VMP_FEED_URL" }),
   makeRssSource({ id: "evergabe", label: "eVergabe.de", feedEnv: "EVERGABE_FEED_URL" }),
 ];
 

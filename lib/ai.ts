@@ -1,4 +1,5 @@
 import type { Tender } from "./types";
+import { fbeRelevance } from "./ingest/searchTerms";
 
 export interface TenderInsight {
   /** Plain-language summary (Klartext) of the notice. */
@@ -113,12 +114,14 @@ function heuristicInsight(tender: Tender, profile?: string): TenderInsight {
 }
 
 function heuristicFit(tender: Tender, profile?: string): number {
-  if (!profile) return 50;
+  const text = `${tender.title} ${tender.description} ${tender.category} ${tender.cpvLabel}`;
+  // Without a profile, fall back to the F&B domain-cluster relevance.
+  if (!profile) return fbeRelevance(text);
   const p = profile.toLowerCase();
-  const text = `${tender.title} ${tender.description} ${tender.category} ${tender.cpvLabel}`.toLowerCase();
   const words = p.split(/\s+/).filter((w) => w.length > 3);
-  if (words.length === 0) return 50;
-  const hits = words.filter((w) => text.includes(w)).length;
+  if (words.length === 0) return fbeRelevance(text);
+  const haystack = text.toLowerCase();
+  const hits = words.filter((w) => haystack.includes(w)).length;
   return clamp(Math.round((hits / words.length) * 100));
 }
 
