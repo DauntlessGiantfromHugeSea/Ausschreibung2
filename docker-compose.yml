@@ -5,7 +5,9 @@ services:
     container_name: auftrag-ai
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      # Host-Port konfigurierbar: APP_PORT in .env setzen (Standard 3000).
+      # Container lauscht intern immer auf 3000.
+      - "${APP_PORT:-3000}:3000"
     environment:
       # Persisted, writable data (user accounts + crawled tenders).
       AUFTRAG_DATA_DIR: /data
