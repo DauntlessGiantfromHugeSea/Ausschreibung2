@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTenderById } from "@/lib/store";
 import { TenderInsight } from "@/components/TenderInsight";
+import { getCurrentUser } from "@/lib/session";
 import { formatCurrency, formatDate, deadlineLabel } from "@/lib/format";
 import type { Metadata } from "next";
 
@@ -25,6 +26,7 @@ export default async function TenderPage({
   const { id } = await params;
   const t = getTenderById(id);
   if (!t) notFound();
+  const user = await getCurrentUser();
   const dl = deadlineLabel(t.deadline);
 
   return (
@@ -55,7 +57,7 @@ export default async function TenderPage({
       </div>
 
       <div className="mt-8">
-        <TenderInsight id={t.id} />
+        <TenderInsight id={t.id} loggedIn={!!user} />
       </div>
 
       <section className="mt-8">

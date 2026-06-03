@@ -27,6 +27,11 @@ export function Header({ user }: { user: PublicUser | null }) {
               Mein Konto
             </Link>
           )}
+          {user?.role === "admin" && (
+            <Link href="/admin" className="font-medium text-brand-700 hover:text-brand-900">
+              Admin
+            </Link>
+          )}
         </nav>
 
         <div className="ml-auto flex items-center gap-3 text-sm">

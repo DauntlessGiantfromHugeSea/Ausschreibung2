@@ -7,6 +7,8 @@ const USERS_FILE = path.join(DATA_DIR, "users.json");
 const SECRET = process.env.AUTH_SECRET || "dev-insecure-secret-change-me";
 export const SESSION_COOKIE = "auftrag_session";
 
+export type Role = "admin" | "user";
+
 export interface SavedSearch {
   id: string;
   label: string;
@@ -19,6 +21,7 @@ export interface User {
   id: string;
   email: string;
   passwordHash: string; // scrypt: salt:hash (hex)
+  role: Role;
   createdAt: string;
   savedSearches: SavedSearch[];
 }
@@ -26,21 +29,43 @@ export interface User {
 export interface PublicUser {
   id: string;
   email: string;
+  role: Role;
+}
+
+/** Richer view for the admin user list. */
+export interface AdminUser extends PublicUser {
+  createdAt: string;
+  savedSearchCount: number;
 }
 
 // ---------- user store (JSON file) ----------
 
 function readUsers(): User[] {
+  let users: User[];
   try {
-    return JSON.parse(fs.readFileSync(USERS_FILE, "utf-8")) as User[];
+    users = JSON.parse(fs.readFileSync(USERS_FILE, "utf-8")) as User[];
   } catch {
-    return [];
+    users = [];
   }
+  // Back-compat: ensure every record has a role.
+  let changed = false;
+  for (const u of users) {
+    if (!u.role) {
+      u.role = "user";
+      changed = true;
+    }
+  }
+  if (changed) writeUsers(users);
+  return users;
 }
 
 function writeUsers(users: User[]): void {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), "utf-8");
+}
+
+function toPublic(u: User): PublicUser {
+  return { id: u.id, email: u.email, role: u.role };
 }
 
 // ---------- password hashing (scrypt) ----------
@@ -82,6 +107,42 @@ export function verifySession(token: string | undefined): string | null {
   }
 }
 
+// ---------- admin bootstrap from env ----------
+
+let bootstrapped = false;
+
+/**
+ * Creates the admin account from ADMIN_EMAIL / ADMIN_PASSWORD on first call, if
+ * that user does not yet exist. Idempotent and safe to call on every request.
+ * If the user already exists, ensures it has the admin role.
+ */
+export function bootstrapAdminFromEnv(): void {
+  if (bootstrapped) return;
+  bootstrapped = true;
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.ADMIN_PASSWORD;
+  if (!email || !password) return;
+
+  const users = readUsers();
+  const existing = users.find((u) => u.email === email);
+  if (existing) {
+    if (existing.role !== "admin") {
+      existing.role = "admin";
+      writeUsers(users);
+    }
+    return;
+  }
+  users.push({
+    id: crypto.randomUUID(),
+    email,
+    passwordHash: hashPassword(password),
+    role: "admin",
+    createdAt: new Date().toISOString(),
+    savedSearches: [],
+  });
+  writeUsers(users);
+}
+
 // ---------- public API ----------
 
 export function registerUser(email: string, password: string): PublicUser {
@@ -90,29 +151,32 @@ export function registerUser(email: string, password: string): PublicUser {
   if (password.length < 8) throw new Error("Passwort muss mindestens 8 Zeichen haben.");
   const users = readUsers();
   if (users.some((u) => u.email === norm)) throw new Error("E-Mail ist bereits registriert.");
+  // The very first account becomes admin so a fresh install is manageable.
+  const role: Role = users.length === 0 ? "admin" : "user";
   const user: User = {
     id: crypto.randomUUID(),
     email: norm,
     passwordHash: hashPassword(password),
+    role,
     createdAt: new Date().toISOString(),
     savedSearches: [],
   };
   users.push(user);
   writeUsers(users);
-  return { id: user.id, email: user.email };
+  return toPublic(user);
 }
 
 export function authenticate(email: string, password: string): PublicUser | null {
   const norm = email.trim().toLowerCase();
   const user = readUsers().find((u) => u.email === norm);
   if (!user || !verifyPassword(password, user.passwordHash)) return null;
-  return { id: user.id, email: user.email };
+  return toPublic(user);
 }
 
 export function getUserById(id: string | null): PublicUser | null {
   if (!id) return null;
   const user = readUsers().find((u) => u.id === id);
-  return user ? { id: user.id, email: user.email } : null;
+  return user ? toPublic(user) : null;
 }
 
 export function getSavedSearches(userId: string): SavedSearch[] {
@@ -140,4 +204,63 @@ export function deleteSavedSearch(userId: string, searchId: string): void {
   if (!user) return;
   user.savedSearches = user.savedSearches.filter((s) => s.id !== searchId);
   writeUsers(users);
+}
+
+// ---------- admin: user management ----------
+
+export function isAdmin(user: PublicUser | null): boolean {
+  return user?.role === "admin";
+}
+
+export function listUsers(): AdminUser[] {
+  return readUsers()
+    .map((u) => ({
+      id: u.id,
+      email: u.email,
+      role: u.role,
+      createdAt: u.createdAt,
+      savedSearchCount: u.savedSearches.length,
+    }))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+export function adminCreateUser(email: string, password: string, role: Role): PublicUser {
+  const user = registerUser(email, password);
+  if (role !== user.role) return setUserRole(user.id, role);
+  return user;
+}
+
+export function setUserRole(userId: string, role: Role): PublicUser {
+  const users = readUsers();
+  const user = users.find((u) => u.id === userId);
+  if (!user) throw new Error("Benutzer nicht gefunden.");
+  if (user.role === "admin" && role !== "admin" && countAdmins(users) <= 1) {
+    throw new Error("Der letzte Admin kann nicht herabgestuft werden.");
+  }
+  user.role = role;
+  writeUsers(users);
+  return toPublic(user);
+}
+
+export function adminResetPassword(userId: string, password: string): void {
+  if (password.length < 8) throw new Error("Passwort muss mindestens 8 Zeichen haben.");
+  const users = readUsers();
+  const user = users.find((u) => u.id === userId);
+  if (!user) throw new Error("Benutzer nicht gefunden.");
+  user.passwordHash = hashPassword(password);
+  writeUsers(users);
+}
+
+export function deleteUser(userId: string): void {
+  const users = readUsers();
+  const user = users.find((u) => u.id === userId);
+  if (!user) return;
+  if (user.role === "admin" && countAdmins(users) <= 1) {
+    throw new Error("Der letzte Admin kann nicht gelöscht werden.");
+  }
+  writeUsers(users.filter((u) => u.id !== userId));
+}
+
+function countAdmins(users: User[]): number {
+  return users.filter((u) => u.role === "admin").length;
 }
