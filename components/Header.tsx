@@ -7,9 +7,12 @@ export function Header({ user }: { user: PublicUser | null }) {
     <header className="border-b border-slate-200 bg-white sticky top-0 z-20">
       <div className="mx-auto max-w-6xl px-4 h-16 flex items-center gap-6">
         <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
-            a
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://fb-eng.de/wp-content/uploads/2024/10/FBE_green.png"
+            alt="F&B Engineering"
+            className="h-8 w-auto"
+          />
           <span>
             auftrag<span className="text-brand-600">.ai</span>
           </span>

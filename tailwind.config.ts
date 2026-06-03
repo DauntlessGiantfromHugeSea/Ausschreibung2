@@ -8,15 +8,17 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Firmenfarbe F&B Engineering: #92c57a (als brand-500), dunklere Töne
+        // für kontrastreiche Buttons/Links.
         brand: {
-          50: "#f5f3ff",
-          100: "#ede9fe",
-          200: "#ddd6fe",
-          400: "#a78bfa",
-          500: "#8b5cf6",
-          600: "#7c3aed",
-          700: "#6d28d9",
-          900: "#4c1d95",
+          50: "#f2f8ec",
+          100: "#e2f0d5",
+          200: "#c7e2b2",
+          400: "#a9d28f",
+          500: "#92c57a",
+          600: "#5f9e3f",
+          700: "#4c7e33",
+          900: "#2f4f20",
         },
       },
     },

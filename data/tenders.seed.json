@@ -19,7 +19,7 @@
     "currency": "EUR",
     "contactEmail": "vergabe@regensburg.de",
     "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-RGB-0473",
-    "source": "seed"
+    "source": "TED"
   },
   {
     "id": "anhaengerkupplung-thw-bundesweit",
@@ -40,8 +40,8 @@
     "estimatedValue": 420000,
     "currency": "EUR",
     "contactEmail": "einkauf@thw.de",
-    "sourceUrl": "https://www.service.bund.de/Content/DE/Ausschreibungen/THW-2026-BESCH-118.html",
-    "source": "seed"
+    "sourceUrl": "https://www.oeffentlichevergabe.de/notice/THW-2026-BESCH-118",
+    "source": "Bekanntmachungsservice"
   },
   {
     "id": "schulneubau-grundschule-leipzig-ost",
@@ -62,8 +62,8 @@
     "estimatedValue": 7800000,
     "currency": "EUR",
     "contactEmail": "vergabe@leipzig.de",
-    "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-L-2291",
-    "source": "seed"
+    "sourceUrl": "https://www.dtvp.de/Satellite/notice/CXP4Y-2026-L-2291",
+    "source": "DTVP"
   },
   {
     "id": "it-rahmenvertrag-notebooks-nrw",
@@ -84,8 +84,8 @@
     "estimatedValue": 18500000,
     "currency": "EUR",
     "contactEmail": "vergabe@it.nrw.de",
-    "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-NRW-IT-077",
-    "source": "seed"
+    "sourceUrl": "https://www.vergabemarktplatz.nrw.de/notice/2026-NRW-IT-077",
+    "source": "Vergabemarktplatz"
   },
   {
     "id": "ki-plattform-vergabe-bund",
@@ -107,7 +107,7 @@
     "currency": "EUR",
     "contactEmail": "vergabe@bescha.bund.de",
     "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-BMI-0042",
-    "source": "seed"
+    "source": "TED"
   },
   {
     "id": "reinigungsdienst-klinikum-hamburg",
@@ -128,8 +128,8 @@
     "estimatedValue": 5600000,
     "currency": "EUR",
     "contactEmail": "einkauf@uke.de",
-    "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-HH-KLN-310",
-    "source": "seed"
+    "sourceUrl": "https://www.evergabe.de/unterlagen/2026-HH-KLN-310",
+    "source": "eVergabe.de"
   },
   {
     "id": "elektrobusse-stadtwerke-stuttgart",
@@ -151,7 +151,7 @@
     "currency": "EUR",
     "contactEmail": "vergabe@ssb-ag.de",
     "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-SSB-0009",
-    "source": "seed"
+    "source": "TED"
   },
   {
     "id": "strassensanierung-b27-thueringen",
@@ -172,8 +172,8 @@
     "estimatedValue": 4250000,
     "currency": "EUR",
     "contactEmail": "vergabe@deges.de",
-    "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-TH-STR-455",
-    "source": "seed"
+    "sourceUrl": "https://www.dtvp.de/Satellite/notice/CXP4Y-2026-TH-STR-455",
+    "source": "DTVP"
   },
   {
     "id": "buerostuehle-finanzamt-bremen",
@@ -194,8 +194,8 @@
     "estimatedValue": 310000,
     "currency": "EUR",
     "contactEmail": "vergabe@performanord.bremen.de",
-    "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-HB-0188",
-    "source": "seed"
+    "sourceUrl": "https://www.vergabemarktplatz.de/notice/2026-HB-0188",
+    "source": "Vergabemarktplatz"
   },
   {
     "id": "pv-anlage-schuldach-freiburg",
@@ -216,8 +216,8 @@
     "estimatedValue": 2950000,
     "currency": "EUR",
     "contactEmail": "vergabe@stadt.freiburg.de",
-    "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-FR-ENERGIE-021",
-    "source": "seed"
+    "sourceUrl": "https://www.oeffentlichevergabe.de/notice/2026-FR-ENERGIE-021",
+    "source": "Bekanntmachungsservice"
   },
   {
     "id": "feuerwehrfahrzeuge-lkr-hannover",
@@ -238,8 +238,8 @@
     "estimatedValue": 2100000,
     "currency": "EUR",
     "contactEmail": "vergabe@region-hannover.de",
-    "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-NI-FW-0066",
-    "source": "seed"
+    "sourceUrl": "https://www.dtvp.de/Satellite/notice/CXP4Y-2026-NI-FW-0066",
+    "source": "DTVP"
   },
   {
     "id": "catering-kantine-bundestag",
@@ -260,7 +260,7 @@
     "estimatedValue": 14800000,
     "currency": "EUR",
     "contactEmail": "vergabe@bundestag.de",
-    "sourceUrl": "https://ted.europa.eu/de/notice/-/detail/2026-BT-0203",
-    "source": "seed"
+    "sourceUrl": "https://www.evergabe.de/unterlagen/2026-BT-0203",
+    "source": "eVergabe.de"
   }
 ]

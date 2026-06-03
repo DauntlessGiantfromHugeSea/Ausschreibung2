@@ -37,8 +37,8 @@ export interface Tender {
   currency: string;
   contactEmail: string;
   sourceUrl: string;
-  /** Origin portal. */
-  source: "TED" | "service.bund.de" | "seed";
+  /** Origin portal, e.g. "TED", "DTVP", "Vergabemarktplatz", "eVergabe.de". */
+  source: string;
 }
 
 export interface SearchFacets {

@@ -1,19 +1,22 @@
 /**
- * Ingestion entrypoint. Crawls live tender notices from TED and writes them to
- * data/tenders.json (which the app prefers over the bundled seed dataset).
+ * Ingestion entrypoint. Crawls live notices from all configured procurement
+ * platforms (TED, Bekanntmachungsservice, and any cosinex feeds that are
+ * configured) and writes the merged, de-duplicated result to
+ * <AUFTRAG_DATA_DIR>/tenders.json, which the app prefers over the seed data.
  *
  * Usage:
- *   npm run crawl                      # Germany, default 50 notices
+ *   npm run crawl                          # all enabled sources, 50 each
  *   npm run crawl -- --limit 100
- *   npm run crawl -- --expert 'FT="Anhängerkupplung"'
+ *   npm run crawl -- --source ted,doev     # only specific sources
+ *   npm run crawl -- --query Anhängerkupplung
  *
- * If the TED host is unreachable (e.g. a locked-down network), the script
- * leaves the existing data in place and exits non-fatally, so the app keeps
- * working with seed data.
+ * Crawling is resilient: each source is isolated, so a blocked or failing
+ * portal is reported but never aborts the run. If every source yields nothing,
+ * existing data is kept and the app continues on seed data.
  */
 import fs from "node:fs";
 import path from "node:path";
-import { crawlTed } from "../lib/ingest/ted.ts";
+import { runCrawl } from "../lib/ingest/index.ts";
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
@@ -22,25 +25,30 @@ function arg(name: string): string | undefined {
 
 async function main() {
   const limit = Number(arg("limit") ?? 50);
-  const expert = arg("expert");
+  const query = arg("query");
+  const only = arg("source")?.split(",").map((s) => s.trim()).filter(Boolean);
+
   const dir = process.env.AUFTRAG_DATA_DIR || path.join(process.cwd(), "data");
   fs.mkdirSync(dir, { recursive: true });
   const out = path.join(dir, "tenders.json");
 
-  console.log(`Crawling TED (DEU, limit=${limit}${expert ? `, expert=${expert}` : ""}) …`);
-  try {
-    const tenders = await crawlTed({ limit, expert });
-    if (tenders.length === 0) {
-      console.warn("No notices returned — keeping existing data.");
-      return;
-    }
-    fs.writeFileSync(out, JSON.stringify(tenders, null, 2), "utf-8");
-    console.log(`Wrote ${tenders.length} tenders to ${out}`);
-  } catch (err) {
-    console.error("Crawl failed (network blocked or API error):", (err as Error).message);
-    console.error("App will continue to use seed data. No file written.");
-    process.exitCode = 0;
+  console.log(`Crawling tender platforms (limit=${limit}${only ? `, only=${only.join(",")}` : ""}) …`);
+  const { tenders, report } = await runCrawl({ limit, query, only });
+
+  for (const s of report.sources) {
+    const status = s.ok ? `${s.count} notices` : `FAILED: ${s.error}`;
+    console.log(`  • ${s.label.padEnd(22)} ${status} (${s.ms} ms)`);
   }
+
+  if (tenders.length === 0) {
+    console.warn("No notices fetched from any source — keeping existing data.");
+    return;
+  }
+  fs.writeFileSync(out, JSON.stringify(tenders, null, 2), "utf-8");
+  console.log(`\nWrote ${tenders.length} de-duplicated tenders to ${out}`);
 }
 
-main();
+main().catch((err) => {
+  console.error("Crawl runner error:", err);
+  process.exitCode = 0; // never fail the deploy; app keeps prior/seed data
+});

@@ -32,21 +32,52 @@ npm run dev        # http://localhost:3000
 Beispiel: Suche nach **„Anhängerkupplung"** → Trefferliste → Detailseite mit
 KI-Analyse für ein Profil wie „KFZ-Werkstatt, Bayern".
 
-## Echte Daten crawlen
+## Datenquellen (Crawler)
 
 Die App nutzt standardmäßig einen realistischen Seed-Datensatz
-(`data/tenders.seed.json`). Der Crawler zieht echte Bekanntmachungen aus der
-offenen **TED-API** der EU (aggregiert u. a. deutsche Vergaben):
+(`data/tenders.seed.json`). Der Crawler aggregiert mehrere Vergabeplattformen
+**stabil und unabhängig voneinander**: jede Quelle läuft isoliert mit Timeout
+und Retries (Backoff). Fällt eine Plattform aus oder ist langsam, wird das pro
+Quelle gemeldet und bricht den Lauf **nicht** ab; am Ende wird über alle
+Quellen dedupliziert.
+
+| Quelle | Adapter | Status |
+| ------ | ------- | ------ |
+| **TED** (EU, ted.europa.eu) | offizielle REST-API | aktiv, sofort einsatzbereit |
+| **Bekanntmachungsservice** (oeffentlichevergabe.de) | OCDS-API | aktiv (Endpoint via `DOEV_API_URL` anpassbar) |
+| **DTVP** (dtvp.de) | RSS/Atom-Feed | aktiv, sobald `DTVP_FEED_URL` gesetzt ist |
+| **Vergabemarktplatz** (cosinex) | RSS/Atom-Feed | aktiv, sobald `VMP_FEED_URL` gesetzt ist |
+| **eVergabe.de** | RSS/Atom-Feed | aktiv, sobald `EVERGABE_FEED_URL` gesetzt ist |
+
+> Hinweis: TED und der Bekanntmachungsservice decken oberschwellige deutsche
+> Vergaben breit ab – auch viele, die über DTVP/cosinex/eVergabe veröffentlicht
+> werden. Die cosinex-Feeds aktivieren sich automatisch, sobald die jeweilige
+> Feed-URL als Umgebungsvariable hinterlegt ist; ohne URL deaktiviert sich die
+> Quelle sauber (kein Fehler).
+
+### Crawl per CLI (lokal/Dev)
 
 ```bash
-npm run crawl                              # DEU, 50 Bekanntmachungen
+npm run crawl                          # alle aktiven Quellen, 50 je Quelle
 npm run crawl -- --limit 100
-npm run crawl -- --expert 'FT="Anhängerkupplung"'
+npm run crawl -- --source ted,doev     # nur bestimmte Quellen
+npm run crawl -- --query Anhängerkupplung
 ```
 
-Das Ergebnis wird nach `data/tenders.json` geschrieben und von der App
-bevorzugt geladen. Ist der TED-Host nicht erreichbar (z. B. gesperrtes Netz),
-bleibt der Seed-Datensatz aktiv.
+### Crawl im Container (Produktion)
+
+Das Standalone-Image enthält keine Dev-Tools; daher läuft das Crawling über
+einen geschützten Endpoint. `CRAWL_TOKEN` setzen und per HTTP auslösen
+(ideal für einen Cronjob):
+
+```bash
+curl -X POST -H "x-crawl-token: $CRAWL_TOKEN" \
+  "http://localhost:5000/api/admin/crawl?limit=100"
+```
+
+Das Ergebnis wird nach `<AUFTRAG_DATA_DIR>/tenders.json` geschrieben und von der
+App sofort bevorzugt geladen. Ist keine Quelle erreichbar, bleibt der
+Seed-Datensatz aktiv.
 
 ## Konfiguration (optional)
 
@@ -55,6 +86,12 @@ bleibt der Seed-Datensatz aktiv.
 | `ANTHROPIC_API_KEY`  | Aktiviert echte LLM-Zusammenfassungen statt der Heuristik   |
 | `AUTH_SECRET`        | Secret zum Signieren der Session-Cookies (in Produktion setzen) |
 | `AUFTRAG_DATA_DIR`   | Schreibbares Datenverzeichnis (Nutzer + gecrawlte Daten); im Docker auf ein Volume gemountet |
+| `CRAWL_TOKEN`        | Schützt `POST /api/admin/crawl`; nötig fürs Crawling im Container |
+| `DTVP_FEED_URL`      | RSS/Atom-Feed-URL für DTVP (aktiviert die Quelle)           |
+| `VMP_FEED_URL`       | RSS/Atom-Feed-URL für den Vergabemarktplatz (cosinex)       |
+| `EVERGABE_FEED_URL`  | RSS/Atom-Feed-URL für eVergabe.de                           |
+| `TED_API_URL`        | Override für den TED-API-Endpoint (Default gesetzt)         |
+| `DOEV_API_URL`       | Override für den Bekanntmachungsservice-Endpoint (Default gesetzt) |
 
 ## Deployment per Docker
 
@@ -113,8 +150,14 @@ Port 5000 dann besser nicht mehr direkt nach außen öffnen.
 
 ### Echte Daten im Container crawlen
 
+Token in der `.env` setzen (`echo "CRAWL_TOKEN=$(openssl rand -hex 16)" >> .env`,
+danach `docker compose up -d`), dann den Crawl auslösen:
+
 ```bash
-docker compose exec app sh -c \
-  'AUFTRAG_DATA_DIR=/data node --experimental-strip-types scripts/crawl.ts --limit 100'
-docker compose restart app
+curl -X POST -H "x-crawl-token: $CRAWL_TOKEN" \
+  "http://localhost:5000/api/admin/crawl?limit=100"
 ```
+
+Für regelmäßige Aktualisierung einen Cronjob anlegen, der genau diesen
+`curl`-Aufruf z. B. stündlich ausführt. Ein Neustart ist nicht nötig — die App
+lädt die neuen Daten sofort.

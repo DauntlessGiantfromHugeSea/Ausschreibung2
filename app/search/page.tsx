@@ -51,6 +51,7 @@ export default async function SearchPage({
     category: str(sp, "category"),
     region: str(sp, "region"),
     procedureType: str(sp, "procedureType"),
+    source: str(sp, "source"),
     openOnly: str(sp, "openOnly") === "1",
     sort,
     page,
@@ -78,6 +79,12 @@ export default async function SearchPage({
             items={[{ key: "1", label: "Nur laufende (Frist offen)", count: undefined }]}
             activeKey={query.openOnly ? "1" : undefined}
             hrefFor={(k) => href(sp, { openOnly: query.openOnly ? null : k })}
+          />
+          <FacetGroup
+            title="Plattform"
+            items={toItems(result.facets.source)}
+            activeKey={query.source}
+            hrefFor={(k) => href(sp, { source: query.source === k ? null : k })}
           />
           <FacetGroup
             title="Branche"
