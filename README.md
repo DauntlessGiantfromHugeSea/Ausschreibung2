@@ -54,3 +54,64 @@ bleibt der Seed-Datensatz aktiv.
 | -------------------- | ----------------------------------------------------------- |
 | `ANTHROPIC_API_KEY`  | Aktiviert echte LLM-Zusammenfassungen statt der Heuristik   |
 | `AUTH_SECRET`        | Secret zum Signieren der Session-Cookies (in Produktion setzen) |
+| `AUFTRAG_DATA_DIR`   | Schreibbares Datenverzeichnis (Nutzer + gecrawlte Daten); im Docker auf ein Volume gemountet |
+
+## Deployment per Docker
+
+Das Image nutzt Next.js' `standalone`-Output und läuft als Non-Root.
+Schreibbare Daten (Konten + gecrawlte Ausschreibungen) liegen im Volume `/data`.
+
+### Variante A – Docker Compose (empfohlen)
+
+```bash
+# Secret erzeugen und in .env ablegen (von compose automatisch gelesen)
+echo "AUTH_SECRET=$(openssl rand -hex 32)" >> .env
+# optional: echo "ANTHROPIC_API_KEY=sk-ant-..." >> .env
+
+docker compose up -d --build
+docker compose logs -f          # Logs verfolgen
+```
+
+### Variante B – pures Docker
+
+```bash
+docker build -t auftrag-ai:latest .
+docker volume create auftrag-data
+docker run -d --name auftrag-ai --restart unless-stopped \
+  -p 3000:3000 \
+  -e AUTH_SECRET="$(openssl rand -hex 32)" \
+  -v auftrag-data:/data \
+  auftrag-ai:latest
+```
+
+### Auf dem Server deployen
+
+```bash
+git clone <repo-url> && cd Ausschreibung2
+git checkout claude/epic-lovelace-wtQXA
+docker compose up -d --build
+```
+
+Danach erreichbar unter **http://SERVER-IP:3000**.
+
+### Öffentlich erreichbar machen (Domain + HTTPS)
+
+In Produktion einen Reverse-Proxy davorschalten (Beispiel Caddy, terminiert TLS
+automatisch). `Caddyfile`:
+
+```
+ausschreibungen.example.com {
+    reverse_proxy localhost:3000
+}
+```
+
+Mit Nginx analog `proxy_pass http://localhost:3000;` plus Certbot für HTTPS.
+Port 3000 dann besser nicht mehr direkt nach außen öffnen.
+
+### Echte Daten im Container crawlen
+
+```bash
+docker compose exec app sh -c \
+  'AUFTRAG_DATA_DIR=/data node --experimental-strip-types scripts/crawl.ts --limit 100'
+docker compose restart app
+```
