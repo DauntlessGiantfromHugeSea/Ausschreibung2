@@ -2,7 +2,8 @@ import Link from "next/link";
 import { SearchBar } from "@/components/SearchBar";
 import { SortSelect } from "@/components/SortSelect";
 import { SaveSearchButton } from "@/components/SaveSearchButton";
-import { RelevanceBadge } from "@/components/RelevanceBadge";
+import { RelevanceBadge, LevelBadge } from "@/components/RelevanceBadge";
+import { StatusBadge } from "@/components/TenderWorkflow";
 import { search } from "@/lib/search";
 import { getCurrentUser } from "@/lib/session";
 import { formatCurrency, formatDate, deadlineLabel } from "@/lib/format";
@@ -44,7 +45,7 @@ export default async function SearchPage({
 
   const q = str(sp, "q") ?? "";
   const page = Number(str(sp, "page") ?? "1") || 1;
-  const sort = (str(sp, "sort") as SearchQuery["sort"]) ?? (q ? "relevance" : "deadline");
+  const sort = (str(sp, "sort") as SearchQuery["sort"]) ?? (q ? "relevance" : "fbe");
 
   const query: SearchQuery = {
     q,
@@ -52,6 +53,8 @@ export default async function SearchPage({
     region: str(sp, "region"),
     procedureType: str(sp, "procedureType"),
     source: str(sp, "source"),
+    status: str(sp, "status"),
+    minLevel: str(sp, "minLevel"),
     openOnly: str(sp, "openOnly") === "1",
     sort,
     page,
@@ -79,6 +82,21 @@ export default async function SearchPage({
             items={[{ key: "1", label: "Nur laufende (Frist offen)", count: undefined }]}
             activeKey={query.openOnly ? "1" : undefined}
             hrefFor={(k) => href(sp, { openOnly: query.openOnly ? null : k })}
+          />
+          <FacetGroup
+            title="Fachrelevanz"
+            items={[
+              { key: "high", label: "hoch", count: undefined },
+              { key: "medium", label: "mittel+", count: undefined },
+            ]}
+            activeKey={query.minLevel}
+            hrefFor={(k) => href(sp, { minLevel: query.minLevel === k ? null : k })}
+          />
+          <FacetGroup
+            title="Status"
+            items={toItems(result.facets.status)}
+            activeKey={query.status}
+            hrefFor={(k) => href(sp, { status: query.status === k ? null : k })}
           />
           <FacetGroup
             title="Plattform"
@@ -118,12 +136,20 @@ export default async function SearchPage({
               )}
             </p>
             <div className="flex items-center gap-2">
+              {user && (
+                <a
+                  href={`/api/export?${currentQs}`}
+                  className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+                >
+                  ⤓ CSV-Export
+                </a>
+              )}
               <SaveSearchButton
                 query={currentQs}
                 defaultLabel={q ? `Suche: ${q}` : "Alle Ausschreibungen"}
                 loggedIn={!!user}
               />
-              <SortSelect current={sort ?? "relevance"} />
+              <SortSelect current={sort ?? "fbe"} />
             </div>
           </div>
 
@@ -145,6 +171,8 @@ export default async function SearchPage({
                           </span>
                           <span>{t.region}</span>
                           <span>· CPV {t.cpvCode}</span>
+                          {t.fbeLevel !== "none" && <LevelBadge level={t.fbeLevel} score={t.fbeScore} />}
+                          {t.status !== "neu" && <StatusBadge status={t.status} />}
                           {q && <RelevanceBadge value={t.relevance} />}
                         </div>
                         <Link

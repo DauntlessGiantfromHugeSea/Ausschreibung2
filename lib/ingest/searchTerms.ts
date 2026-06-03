@@ -151,6 +151,23 @@ export const CPV_CODES: string[] = [
   "45231400", "45231600",
 ];
 
+export type RelevanceLevel = "high" | "medium" | "low" | "none";
+
+/** Maps a 0–100 score to a level (thresholds mirror the Python platform). */
+export function relevanceLevel(score: number): RelevanceLevel {
+  if (score >= 60) return "high";
+  if (score >= 20) return "medium";
+  if (score > 0) return "low";
+  return "none";
+}
+
+/** Cluster terms found in the text (for "matched terms" display). */
+export function matchedClusters(text: string): string[] {
+  if (!text) return [];
+  const hay = text.toLowerCase();
+  return CLUSTERS.filter((c) => c.terms.some((t) => hay.includes(t.toLowerCase()))).map((c) => c.name);
+}
+
 let _allTerms: string[] | null = null;
 
 /** Flat, de-duplicated list of every cluster term. */

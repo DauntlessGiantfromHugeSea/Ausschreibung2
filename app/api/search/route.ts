@@ -14,6 +14,8 @@ export async function GET(req: Request) {
     region: sp.get("region") ?? undefined,
     procedureType: sp.get("procedureType") ?? undefined,
     source: sp.get("source") ?? undefined,
+    status: sp.get("status") ?? undefined,
+    minLevel: sp.get("minLevel") ?? undefined,
     openOnly: sp.get("openOnly") === "1",
     minValue: num("minValue"),
     maxValue: num("maxValue"),

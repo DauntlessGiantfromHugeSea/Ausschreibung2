@@ -3,7 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 
 const OPTIONS: { value: string; label: string }[] = [
-  { value: "relevance", label: "Relevanz" },
+  { value: "fbe", label: "Fachrelevanz" },
+  { value: "relevance", label: "Suchrelevanz" },
   { value: "deadline", label: "Frist (früheste zuerst)" },
   { value: "published", label: "Veröffentlichung (neueste)" },
   { value: "value", label: "Auftragswert (höchster)" },

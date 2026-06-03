@@ -6,6 +6,10 @@ import type {
   Tender,
 } from "./types";
 import { getTenders } from "./store";
+import { fbeRelevance, relevanceLevel } from "./ingest/searchTerms";
+import { getStatuses } from "./tenderMeta";
+
+const LEVEL_RANK: Record<string, number> = { high: 3, medium: 2, low: 1, none: 0 };
 
 /**
  * Normalises text for matching: lowercases and folds German umlauts/ß to ASCII
@@ -75,18 +79,20 @@ function matchesQuery(t: Tender, terms: string[]): boolean {
   return terms.every((term) => body.includes(term));
 }
 
-function buildFacets(items: Tender[]): SearchFacets {
+function buildFacets(items: ScoredTender[]): SearchFacets {
   const facets: SearchFacets = {
     category: {},
     region: {},
     procedureType: {},
     source: {},
+    status: {},
   };
   for (const t of items) {
     bump(facets.category, t.category);
     bump(facets.region, t.region);
     bump(facets.procedureType, t.procedureType);
     bump(facets.source, t.source);
+    bump(facets.status, t.status);
   }
   return facets;
 }
@@ -102,10 +108,12 @@ export function search(query: SearchQuery): SearchResult {
     region,
     procedureType,
     source,
+    status,
+    minLevel,
     openOnly = false,
     minValue,
     maxValue,
-    sort = q ? "relevance" : "deadline",
+    sort = q ? "relevance" : "fbe",
     page = 1,
     pageSize = 10,
   } = query;
@@ -113,8 +121,9 @@ export function search(query: SearchQuery): SearchResult {
   const terms = tokenize(q);
   const today = new Date().toISOString().slice(0, 10);
 
-  // Apply free-text + structured filters.
-  let filtered = getTenders().filter((t) => {
+  // Pre-filter by free-text + structured fields (status/level applied after
+  // scoring, since they depend on computed values).
+  const prefiltered = getTenders().filter((t) => {
     if (!matchesQuery(t, terms)) return false;
     if (category && t.category !== category) return false;
     if (region && t.region !== region) return false;
@@ -127,19 +136,31 @@ export function search(query: SearchQuery): SearchResult {
     return true;
   });
 
-  // Facets are computed over the filtered set (excluding the free-text impact
-  // would require per-facet recomputation; this keeps counts intuitive).
-  const facets = buildFacets(filtered);
+  const statusMap = getStatuses(prefiltered.map((t) => t.reference));
+  const minRank = minLevel ? LEVEL_RANK[minLevel] ?? 0 : 0;
 
-  const scored: ScoredTender[] = filtered.map((t) => ({
-    ...t,
-    relevance: score(t, terms),
-  }));
+  let scored: ScoredTender[] = prefiltered.map((t) => {
+    const fbeScore = fbeRelevance(`${t.title} ${t.description} ${t.buyer} ${t.city} ${t.cpvLabel}`);
+    return {
+      ...t,
+      relevance: score(t, terms),
+      fbeScore,
+      fbeLevel: relevanceLevel(fbeScore),
+      status: statusMap[t.reference] ?? "neu",
+    };
+  });
+
+  if (status) scored = scored.filter((t) => t.status === status);
+  if (minRank > 0) scored = scored.filter((t) => (LEVEL_RANK[t.fbeLevel] ?? 0) >= minRank);
+
+  const facets = buildFacets(scored);
 
   scored.sort((a, b) => {
     switch (sort) {
       case "relevance":
-        return b.relevance - a.relevance || b.publishedDate.localeCompare(a.publishedDate);
+        return b.relevance - a.relevance || b.fbeScore - a.fbeScore;
+      case "fbe":
+        return b.fbeScore - a.fbeScore || a.deadline.localeCompare(b.deadline);
       case "deadline":
         return a.deadline.localeCompare(b.deadline);
       case "published":

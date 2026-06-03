@@ -46,6 +46,7 @@ export interface SearchFacets {
   region: Record<string, number>;
   procedureType: Record<string, number>;
   source: Record<string, number>;
+  status: Record<string, number>;
 }
 
 export interface SearchQuery {
@@ -54,11 +55,15 @@ export interface SearchQuery {
   region?: string;
   procedureType?: string;
   source?: string;
+  /** Filter by workflow status (neu/geprüft/…). */
+  status?: string;
+  /** Minimum F&B relevance level: "high" | "medium" | "low". */
+  minLevel?: string;
   /** Only tenders whose deadline is on/after today. */
   openOnly?: boolean;
   minValue?: number;
   maxValue?: number;
-  sort?: "relevance" | "deadline" | "published" | "value";
+  sort?: "relevance" | "deadline" | "published" | "value" | "fbe";
   page?: number;
   pageSize?: number;
 }
@@ -66,6 +71,12 @@ export interface SearchQuery {
 export interface ScoredTender extends Tender {
   /** 0–100 keyword relevance score for the current query (0 when no query). */
   relevance: number;
+  /** 0–100 F&B domain-cluster relevance (Flüssigboden/ZFSV/thermolith …). */
+  fbeScore: number;
+  /** Level derived from fbeScore: high/medium/low/none. */
+  fbeLevel: string;
+  /** Workflow status (neu/geprüft/interessant/…). */
+  status: string;
 }
 
 export interface SearchResult {

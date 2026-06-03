@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTenderById } from "@/lib/store";
 import { TenderInsight } from "@/components/TenderInsight";
+import { TenderWorkflow } from "@/components/TenderWorkflow";
 import { getCurrentUser } from "@/lib/session";
+import { getMeta } from "@/lib/tenderMeta";
+import { fbeRelevance, relevanceLevel, matchedClusters } from "@/lib/ingest/searchTerms";
 import { formatCurrency, formatDate, deadlineLabel } from "@/lib/format";
 import type { Metadata } from "next";
 
@@ -28,6 +31,10 @@ export default async function TenderPage({
   if (!t) notFound();
   const user = await getCurrentUser();
   const dl = deadlineLabel(t.deadline);
+  const meta = getMeta(t.reference);
+  const fbeScore = fbeRelevance(`${t.title} ${t.description} ${t.buyer} ${t.city} ${t.cpvLabel}`);
+  const level = relevanceLevel(fbeScore);
+  const clusters = matchedClusters(`${t.title} ${t.description} ${t.cpvLabel}`);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -55,6 +62,40 @@ export default async function TenderPage({
         />
         <Fact label="Veröffentlicht" value={formatDate(t.publishedDate)} />
       </div>
+
+      {clusters.length > 0 && (
+        <div className="mt-6 rounded-xl border border-brand-200 bg-brand-50/40 p-4">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-slate-700">Fachrelevanz</span>
+            <span
+              className={
+                "rounded px-2 py-0.5 text-xs font-semibold " +
+                (level === "high"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : level === "medium"
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-slate-100 text-slate-500")
+              }
+            >
+              {fbeScore} · {level}
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-slate-600">
+            Passende Themen: {clusters.join(" · ")}
+          </p>
+        </div>
+      )}
+
+      {user && (
+        <div className="mt-6">
+          <TenderWorkflow
+            id={t.id}
+            loggedIn={!!user}
+            initialStatus={meta.status}
+            initialNotes={meta.notes}
+          />
+        </div>
+      )}
 
       <div className="mt-8">
         <TenderInsight id={t.id} loggedIn={!!user} />
