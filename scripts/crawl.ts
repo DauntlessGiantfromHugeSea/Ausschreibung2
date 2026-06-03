@@ -23,7 +23,9 @@ function arg(name: string): string | undefined {
 async function main() {
   const limit = Number(arg("limit") ?? 50);
   const expert = arg("expert");
-  const out = path.join(process.cwd(), "data", "tenders.json");
+  const dir = process.env.AUFTRAG_DATA_DIR || path.join(process.cwd(), "data");
+  fs.mkdirSync(dir, { recursive: true });
+  const out = path.join(dir, "tenders.json");
 
   console.log(`Crawling TED (DEU, limit=${limit}${expert ? `, expert=${expert}` : ""}) …`);
   try {

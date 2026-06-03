@@ -1,10 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Tender } from "./types";
+import { BUNDLED_DATA_DIR, WRITABLE_DATA_DIR } from "./paths";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const CRAWLED = path.join(DATA_DIR, "tenders.json");
-const SEED = path.join(DATA_DIR, "tenders.seed.json");
+const CRAWLED = path.join(WRITABLE_DATA_DIR, "tenders.json");
+const SEED = path.join(BUNDLED_DATA_DIR, "tenders.seed.json");
 
 let cache: Tender[] | null = null;
 

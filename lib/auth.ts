@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { WRITABLE_DATA_DIR as DATA_DIR } from "./paths";
 
-const DATA_DIR = path.join(process.cwd(), "data");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const SECRET = process.env.AUTH_SECRET || "dev-insecure-secret-change-me";
 export const SESSION_COOKIE = "auftrag_session";

@@ -1,0 +1,20 @@
+services:
+  app:
+    build: .
+    image: auftrag-ai:latest
+    container_name: auftrag-ai
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Persisted, writable data (user accounts + crawled tenders).
+      AUFTRAG_DATA_DIR: /data
+      # IMPORTANT: set a strong secret in production (e.g. `openssl rand -hex 32`).
+      AUTH_SECRET: ${AUTH_SECRET:-change-me-in-production}
+      # Optional: enables real LLM summaries instead of the offline heuristic.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - auftrag-data:/data
+
+volumes:
+  auftrag-data:
